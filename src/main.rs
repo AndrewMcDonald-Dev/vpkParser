@@ -30,9 +30,13 @@ fn grab_vdata(path_to_vpk: String, path_to_vdata: String) -> Result<String, Stri
 
 fn parse_vdata_to_json(vdata: String) -> Result<String, String> {
     let assignment = Regex::new(
-        // r#"([a-zA-z_0-9]*) = (?:("[a-zA-Z0-9_+\.\| -#]*"|true|false|[+-]?[\d]*\.?\d+|))"#
-        r#"([a-zA-z_0-9]*) = (?:("[^"]*"|true|false|[+-]?[\d]*\.?\d+|))"#
+        r#"([a-zA-Z_0-9]+) = (?:("[^"]*"|true|false|[+-]?[\d]*\.?\d+|))"#
     ).unwrap();
+
+    let assignment_with_quotes = Regex::new(
+        r#"("[^"]*") = (?:("[^"]*"|true|false|[+-]?[\d]*\.?\d+|))"#
+    ).unwrap();
+
     let braces = Regex::new(
         r#"(\[|\]|\{|\})"#
     ).unwrap();
@@ -57,6 +61,10 @@ fn parse_vdata_to_json(vdata: String) -> Result<String, String> {
 
             if let Some((_, [var, assign])) = assignment.captures(line).map(|c| c.extract()) {
                 return format!("\"{}\":{},", var, assign);
+            }            
+
+            if let Some((_, [var, assign])) = assignment_with_quotes.captures(line).map(|c| c.extract()) {
+                return format!("{}:{},", var, assign);
             }            
 
             if let Some((_, [brace])) = braces.captures(line).map(|c| c.extract()) {
