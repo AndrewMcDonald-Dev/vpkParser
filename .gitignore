@@ -1,4 +1,5 @@
 target/
 Decompiler
+*.exe
 *.txt
 vpkParser
