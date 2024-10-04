@@ -15,21 +15,31 @@ fn main() -> Result<(), String> {
                 .required(true)
                 .help("Path to VDATA inside VPK."),
         )
+            .arg(
+            Arg::new("skip_json")
+                .short('s')
+                .action(clap::ArgAction::SetTrue)
+                .help("When set parsing of VDATA to JSON with be skipped and VDATA with be output.")
+        )
         .get_matches();
 
     let path_to_vpk = match_result
         .get_one::<String>("path_to_vpk")
         .unwrap()
         .to_string();
+
     let path_to_vdata = match_result
         .get_one::<String>("path_to_vdata")
         .unwrap()
         .to_string();
 
-    let vdata = grab_vdata(path_to_vpk, path_to_vdata)?;
-    let json = parse_vdata_to_json(vdata)?;
+    let mut output = grab_vdata(path_to_vpk, path_to_vdata)?;
 
-    println!("{}", json);
+    if !match_result.get_flag("skip_json") {
+        output = parse_vdata_to_json(output)?;
+    }
+
+    println!("{}", output);
     Ok(())
 }
 
