@@ -1,9 +1,30 @@
+use clap::{command, Arg};
 use regex::Regex;
 use std::process::Command;
 
 fn main() -> Result<(), String> {
-    let path_to_vpk = std::env::args().nth(1).ok_or("Bad path to VPK.\n Remember, correct formatting is vpkParser [path to vpk] [path to vdata]")?;
-    let path_to_vdata = std::env::args().nth(2).ok_or("Bad path to VDATA.\n Remember, correct formatting is vpkParser [path to vpk] [path to vdata]")?;
+    let match_result = command!()
+        .about("This program extracts a VDATA file from a VPK file and optionally converts it to JSON.")
+        .arg(
+            Arg::new("path_to_vpk")
+                .required(true)
+                .help("Path to VPK to be searched through."),
+        )
+        .arg(
+            Arg::new("path_to_vdata")
+                .required(true)
+                .help("Path to VDATA inside VPK."),
+        )
+        .get_matches();
+
+    let path_to_vpk = match_result
+        .get_one::<String>("path_to_vpk")
+        .unwrap()
+        .to_string();
+    let path_to_vdata = match_result
+        .get_one::<String>("path_to_vdata")
+        .unwrap()
+        .to_string();
 
     let vdata = grab_vdata(path_to_vpk, path_to_vdata)?;
     let json = parse_vdata_to_json(vdata)?;
@@ -29,20 +50,14 @@ fn grab_vdata(path_to_vpk: String, path_to_vdata: String) -> Result<String, Stri
 }
 
 fn parse_vdata_to_json(vdata: String) -> Result<String, String> {
-    let assignment = Regex::new(
-        r#"([a-zA-Z_0-9]+) = (?:("[^"]*"|true|false|[+-]?[\d]*\.?\d+|))"#
-    ).unwrap();
+    let assignment =
+        Regex::new(r#"([a-zA-Z_0-9]+) = (?:("[^"]*"|true|false|[+-]?[\d]*\.?\d+|))"#).unwrap();
 
-    let assignment_with_quotes = Regex::new(
-        r#"("[^"]*") = (?:("[^"]*"|true|false|[+-]?[\d]*\.?\d+|))"#
-    ).unwrap();
+    let assignment_with_quotes =
+        Regex::new(r#"("[^"]*") = (?:("[^"]*"|true|false|[+-]?[\d]*\.?\d+|))"#).unwrap();
 
-    let braces = Regex::new(
-        r#"(\[|\]|\{|\})"#
-    ).unwrap();
-    let number_or_string = Regex::new(
-        r#"([+-]?[\d]*\.?\d+|"[a-zA-Z0-9_+\.\| ]*")"#
-    ).unwrap();
+    let braces = Regex::new(r#"(\[|\]|\{|\})"#).unwrap();
+    let number_or_string = Regex::new(r#"([+-]?[\d]*\.?\d+|"[a-zA-Z0-9_+\.\| ]*")"#).unwrap();
     let bad_line_detector = Regex::new("soundevent:|panorama:|resource_name:").unwrap();
 
     let json = vdata
@@ -61,11 +76,11 @@ fn parse_vdata_to_json(vdata: String) -> Result<String, String> {
 
             if let Some((_, [var, assign])) = assignment.captures(line).map(|c| c.extract()) {
                 return format!("\"{}\":{},", var, assign);
-            }            
+            };
 
             if let Some((_, [var, assign])) = assignment_with_quotes.captures(line).map(|c| c.extract()) {
                 return format!("{}:{},", var, assign);
-            }            
+            }
 
             if let Some((_, [brace])) = braces.captures(line).map(|c| c.extract()) {
                 return match brace {
