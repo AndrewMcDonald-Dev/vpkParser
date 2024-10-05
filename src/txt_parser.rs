@@ -41,7 +41,7 @@ fn parse_txt_to_json(input: String) -> Result<String, String> {
 
     let braces = Regex::new(r#"(\[|\]|\{|\})"#).unwrap();
     let hero = Regex::new(r#"(^[^"{}\[\]\t\n\r]+)"#).unwrap();
-    let duo = Regex::new(r#"("[\S]+")[\s&&[^\n]]*("[\S ]+")"#).unwrap();
+    let duo = Regex::new(r#"("[\S]+")[\s&&[^\n]]*("[\S ]*")"#).unwrap();
     let solo = Regex::new(r#"("[\S]+")"#).unwrap();
 
     let mut count = 0;
