@@ -60,6 +60,3 @@ fn main() -> Result<(), String> {
 
     Ok(())
 }
-
-// (?:\s*//-+\s*){2,}// (?P<hero>[\S ][^-]+)\n\s*// (?:[\S ]+)?(?:\s*//-+\s*)+
-// This regex will be used for the localization parser
